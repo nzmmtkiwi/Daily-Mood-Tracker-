@@ -2,12 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import os
-import openai
-
-# 🔐 Load API Key from Streamlit Secrets
-OPENROUTER_API_KEY = st.secrets["openrouter"]["api_key"]
-openai.api_key = OPENROUTER_API_KEY
-openai.api_base = "https://openrouter.ai/api/v1"  # Important for OpenRouter
+import requests
 
 st.set_page_config(page_title="Daily Mood Tracker", layout="centered")
 st.title("🧠 Daily Mood & Focus Tracker")
@@ -20,8 +15,9 @@ with st.form("entry_form"):
     notes = st.text_area("Any notes or reflections?", "")
     submitted = st.form_submit_button("Save Entry")
 
-# Path to CSV log
 file_path = "mood_log.csv"
+
+deepseek_api_key = st.secrets["deepseek"]["api_key"]
 
 def get_ai_feedback(mood, sleep, focus, notes):
     prompt = (
@@ -30,15 +26,21 @@ def get_ai_feedback(mood, sleep, focus, notes):
         "Please provide a short, kind reflection and one actionable tip for tomorrow."
     )
     try:
-        response = openai.ChatCompletion.create(
-            model="openai/gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.choices[0].message["content"]
+        url = "https://api.deepseek.com/v1/chat/completions"
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        headers = {
+            "Authorization": f"Bearer {deepseek_api_key}"
+        }
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
     except Exception as e:
         return f"⚠️ AI feedback failed: {e}"
 
-# Save data and display AI reflection
 if submitted:
     new_data = pd.DataFrame({
         "date": [date.today()],
@@ -59,7 +61,6 @@ if submitted:
         ai_response = get_ai_feedback(mood, sleep, focus, notes)
     st.info(f"**AI Reflection:**\n\n{ai_response}")
 
-# Load & display history
 if os.path.exists(file_path):
     data = pd.read_csv(file_path)
     if not data.empty and all(col in data.columns for col in ["mood", "sleep", "focus"]):
