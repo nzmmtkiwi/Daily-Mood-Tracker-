@@ -97,9 +97,12 @@ if os.path.exists(file_path):
     data = pd.read_csv(file_path)
     st.subheader("🌏 Country Sentiment Summary (Last 30 Days)")
     selected_country = st.selectbox("Select country for sentiment summary", countries)
-    with st.spinner("🤖 Analyzing country sentiment..."):
-        sentiment = get_country_sentiment(selected_country, data)
-    st.info(f"**{selected_country} Sentiment:**\n\n{sentiment}")
+    if "country" in data.columns:
+        with st.spinner("🤖 Analyzing country sentiment..."):
+            sentiment = get_country_sentiment(selected_country, data)
+        st.info(f"**{selected_country} Sentiment:**\n\n{sentiment}")
+    else:
+        st.warning("No country data available in your log. New entries will include country information.")
 
     if not data.empty and all(col in data.columns for col in ["mood", "sleep", "focus"]):
         st.subheader("📈 Mood, Sleep & Focus Over Time")
