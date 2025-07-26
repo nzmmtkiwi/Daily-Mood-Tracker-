@@ -7,20 +7,24 @@ import requests
 st.set_page_config(page_title="Country Economy Sentiment", layout="centered")
 st.title("🌏 Country Economy Sentiment (Last 30 Days)")
 
-countries = ["New Zealand", "Australia", "USA", "UK", "Other"]
-selected_country = st.selectbox("Select a country", countries)
+countries = ["New Zealand", "Australia", "USA", "UK", "Singapore", "Other"]
+selected_country = st.selectbox("Select a country to compare with Singapore", countries)
 
 def get_economy_sentiment(country):
     # Replace this with a real API call if available
-    # Example: response = requests.get(f"https://api.example.com/sentiment?country={country}")
-    # return response.json()["sentiment"]
     # For now, return a placeholder
     return f"Sentiment summary for {country} (last 30 days):\n\n- Economy is stable.\n- Consumer confidence is moderate.\n- Inflation is under control."
 
 if selected_country:
-    with st.spinner("🔎 Fetching sentiment..."):
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(f"{selected_country}")
         sentiment = get_economy_sentiment(selected_country)
-    st.info(sentiment)
+        st.info(sentiment)
+    with col2:
+        st.subheader("Singapore")
+        sg_sentiment = get_economy_sentiment("Singapore")
+        st.info(sg_sentiment)
 
 # Daily Mood Tracker Section
 st.title("🧠 Daily Mood & Focus Tracker")
